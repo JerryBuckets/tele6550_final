@@ -8,9 +8,12 @@ import sys
 from time import sleep
 from threading import Thread
 
+MY_ADDR = "192.168.1.10"
+MY_RX_PORT = 7002
 
-HOST_ADDR = "192.168.1.10"
-HOST_PORT = 7002
+HOST_ADDR = "192.168.1.8"
+HOST_SEND_PORT = 7003
+
 
 TEMP_PIPE = "/tmp/temp"
 
@@ -73,11 +76,11 @@ class udpComm(Thread):
     def recieveLoop(self):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-        sock.bind((HOST_ADDR, self.port))
+        sock.bind((MY_ADDR, MY_RX_PORT))
         print("Setup UDP Recieve Socket")
     
         while(1):
-            print("Waiting on message from Computer")
+            #print("Waiting on message from Computer")
             msg = sock.recv(1024).decode()
             decoded_msg= json.loads(msg)
             print(f'Got {decoded_msg}')
@@ -98,22 +101,21 @@ def main():
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-    #sock.bind((HOST_ADDR, HOST_PORT))
     
-
     try:
+        tst_temp = 1
         while(1):
             try:
-                print(from_sensor.tempValue)
-                if(from_sensor.tempValue > 1):
-                    temp_dict = {'Temp': from_sensor.tempValue}
-                    temp_to_send = json.dumps(temp_dict, default=str).encode('utf-8')
-                    sock.sendto(temp_to_send, (HOST_ADDR, HOST_ADDR))
+                #if(from_sensor.tempValue > 1):
+                    #temp_dict = {'Temp': from_sensor.tempValue}
+                    temp_dict = {'Temp': 6}
+                    temp_to_send = json.dumps(temp_dict)
+                    sock.sendto(temp_to_send.encode('utf-8'), (HOST_ADDR, HOST_SEND_PORT))
+                    #print(f'Sent Temp')
             except Exception as e:
                 print(f'Couldnt send temp: {e}')
             sleep(1)
-
-
+    
     except KeyboardInterrupt:
         return -1
     
